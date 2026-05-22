@@ -1,0 +1,16 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.2.4">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>6e83e57c-6e56-44b8-a682-0b78635a4d50</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HRForce.ApiService\HRForce.ApiService.csproj" />
+    <ProjectReference Include="..\HRForce.Web\HRForce.Web.csproj" />
+  </ItemGroup>
+
+</Project>

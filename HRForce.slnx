@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="HRForce.ApiService/HRForce.ApiService.csproj" />
+  <Project Path="HRForce.AppHost/HRForce.AppHost.csproj" />
+  <Project Path="HRForce.ServiceDefaults/HRForce.ServiceDefaults.csproj" />
+  <Project Path="HRForce.Web/HRForce.Web.csproj" />
+</Solution>

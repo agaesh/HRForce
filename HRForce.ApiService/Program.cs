@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using HRForce.ApiService.Infrastructure;
+using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,15 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<HrForceDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
+builder.Services.AddControllers()
+    .AddNewtonsoftJson(options =>
+    {
+        options.SerializerSettings.Converters.Add(
+            new Newtonsoft.Json.Converters.StringEnumConverter()
+        );
+    });
 
 var app = builder.Build();
 

@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-
+using HRForce.ApiService.Domain;
 namespace HRForce.ApiService.Infrastructure
 {
     public class HrForceDbContext : DbContext
@@ -11,6 +11,18 @@ namespace HRForce.ApiService.Infrastructure
 
         // Add DbSet<T> properties here when you create your entities
         // Example:
-        // public DbSet<Department> Departments { get; set; }
+        public DbSet<Department> Departments { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Department>()
+                .Property(d => d.Status)
+                .HasConversion<string>();
+        
+            modelBuilder.Entity<Department>()
+                .HasIndex(d => d.DepartmentCode)
+                .IsUnique();
+        
+        }
     }
 }

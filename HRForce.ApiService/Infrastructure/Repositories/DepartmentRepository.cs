@@ -17,7 +17,7 @@ namespace HRForce.ApiService.Infrastructure.Repositories
             return await _context.Departments.ToListAsync();
         }
 
-        public async Task<Department?> GetDeparmentByIdAsync(int id)
+        public async Task<Department?> GetDepartmentByIdAsync(int id)
         {
             return await _context.Departments
                 .FirstOrDefaultAsync(x => x.Id == id);

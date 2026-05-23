@@ -11,9 +11,16 @@ namespace HRForce.ApiService.Application.Service
            _departmentRepository = (DepartmentRepository)departmentRepository;
         }
 
-        public Task<List<Department>> GetAllDepartmentsAsync()
+        public async Task<List<DepartmentDTO>> GetAllDepartmentsAsync()
         {
-            return _departmentRepository.GetAllDepartmentsAsync();
+            var departments = await _departmentRepository.GetAllDepartmentsAsync();
+
+            return departments.Select(d => new DepartmentDTO
+        {
+                Id = d.Id,
+                DepartmentCode = d.DepartmentCode,
+                DepartmentName = d.DepartmentName
+            }).ToList();
         }
 
         public Task<Department?> GetDepartmentByIdAsync(int id)

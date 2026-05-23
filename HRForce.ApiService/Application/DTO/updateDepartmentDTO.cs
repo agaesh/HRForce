@@ -11,7 +11,7 @@ namespace HRForce.ApiService.Application.DTO
         public string DepartmentName { get; set; }
 
         [Required(ErrorMessage = "Department Name is required")]
-        public string Status { get; set; }
+        public DepartmentStatus Status { get; set; }
          
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
     }

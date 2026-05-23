@@ -1,7 +1,7 @@
 ﻿using HRForce.ApiService.Application.Interfaces;
 using HRForce.ApiService.Infrastructure.Repositories;
 using HRForce.ApiService.Domain;
-using HRForce.ApiService.Application.DTO; 
+using HRForce.ApiService.Application.DTO;
 namespace HRForce.ApiService.Application.Service
 {
     public class DepartmentService
@@ -35,9 +35,9 @@ namespace HRForce.ApiService.Application.Service
             return _departmentRepository.CreateAsync(department);
         }
 
-        public Task UpdateDepartmentAsync(UpdateDepartmentDTO uDT)
+        public async Task UpdateDepartmentAsync(UpdateDepartmentDTO uDT)
         {
-            var existing = _departmentRepository.GetDepartmentByIdAsync(uDT.Id).Result;
+            var existing = await _departmentRepository.GetDepartmentByIdAsync(uDT.Id);
 
             if(existing == null)
             {
@@ -48,14 +48,21 @@ namespace HRForce.ApiService.Application.Service
             existing.Status = uDT.Status;
             existing.UpdatedAt = uDT.UpdatedAt;
 
-            return _departmentRepository.UpdateAsync(existing);
+            await _departmentRepository.UpdateAsync(existing);
         }
 
-        public Task DeleteDepartmentAsync(int Departmentid)
+        public async Task DeleteDepartmentAsync(int Departmentid)
         {
+        
             // Fetching the existing department to ensure it exists before attempting deletion'
-            var existing = _departmentRepository.GetDepartmentByIdAsync(Departmentid).Result;
-            return _departmentRepository.DeleteAsync(existing);
+            var existing = await _departmentRepository.GetDepartmentByIdAsync(Departmentid);
+            
+            if (existing == null)
+            {
+                // Fixed: Use a specific exception for better API error mapping (404)
+                throw new KeyNotFoundException($"Department with ID {Departmentid} not found.");
+            }
+            await _departmentRepository.DeleteAsync(existing);
         }
     }
 }

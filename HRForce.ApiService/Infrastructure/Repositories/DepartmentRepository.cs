@@ -31,14 +31,27 @@ namespace HRForce.ApiService.Infrastructure.Repositories
         }
         public async Task UpdateAsync(Department department)
         {
-            _context.Departments.Update(department);
+            var existing = await _context.Departments
+                .FirstOrDefaultAsync(y => y.Id == department.Id);
+
+            if (existing == null) return;
+
+            // update only allowed fields
+            existing.DepartmentName = department.DepartmentName;
+            existing.Status = department.Status;
+            existing.UpdatedAt = DateTime.UtcNow;
+
             await _context.SaveChangesAsync();
         }
         public async Task DeleteAsync(Department department)
         {
-            _context.Departments.Remove(department);
+            var existingDepartment = await _context.Departments
+                .FirstOrDefaultAsync(x => x.Id == department.Id);
+
+            existingDepartment.Status = DepartmentStatus.Deleted;
+            existingDepartment.UpdatedAt = DateTime.UtcNow;
+;
             await _context.SaveChangesAsync();
         }
-
     }
 }

@@ -1,9 +1,10 @@
 ﻿using HRForce.ApiService.Domain;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using HRForce.ApiService.Application.Interfaces;
 namespace HRForce.ApiService.Infrastructure.Repositories
 {
-    public class DepartmentRepository
+    public class DepartmentRepository: IDepartmentRepository
     {
         private readonly HrForceDbContext _context;
 

@@ -9,7 +9,7 @@ namespace HRForce.ApiService.Application.DTO
         public string DepartmentCode { get; set; }
         public string DepartmentName { get; set; }
 
-        public string status { get; set; }
+        public DepartmentStatus status { get; set; }
         public DateTime CreatedAt { get; set; }
 
         public DateTime? UpdatedAt { get; set; }

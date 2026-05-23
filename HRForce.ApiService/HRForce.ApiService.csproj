@@ -35,7 +35,7 @@
 
   <ItemGroup>
     <Folder Include="API\" />
-    <Folder Include="Service\" />
+    <Folder Include="Application\Service\" />
   </ItemGroup>
 
 </Project>

@@ -24,5 +24,15 @@ namespace HRForce.ApiService.Application.Service
         {
             return _departmentRepository.CreateAsync(department);
         }
+
+        public Task UpdateDepartmentAsync(Department department)
+        {
+            return _departmentRepository.UpdateAsync(department);
+        }
+
+        public Task DeleteDepartmentAsync(Department department)
+        {
+            return _departmentRepository.DeleteAsync(department);
+        }
     }
 }

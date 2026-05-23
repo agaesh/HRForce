@@ -42,13 +42,15 @@ namespace HRForce.ApiService.Application.Service
             return _departmentRepository.CreateAsync(department);
         }
 
-        public async Task UpdateDepartmentAsync(UpdateDepartmentDTO uDT)
+        public async Task<Department> UpdateDepartmentAsync(UpdateDepartmentDTO uDT)
         {
-            var existing = await _departmentRepository.GetDepartmentByIdAsync(uDT.Id);
+            var existing = await _departmentRepository
+                .GetDepartmentByIdAsync(uDT.Id);
 
-            if(existing == null)
+            if (existing == null)
             {
-                throw new Exception($"Department with ID {uDT.Id} not found.");
+                throw new KeyNotFoundException(
+                    $"Department with ID {uDT.Id} not found.");
             }
 
             existing.DepartmentName = uDT.DepartmentName;
@@ -56,6 +58,8 @@ namespace HRForce.ApiService.Application.Service
             existing.UpdatedAt = uDT.UpdatedAt;
 
             await _departmentRepository.UpdateAsync(existing);
+
+            return existing;
         }
 
         public async Task DeleteDepartmentAsync(int Departmentid)

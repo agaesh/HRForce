@@ -51,9 +51,11 @@ namespace HRForce.ApiService.Application.Service
             return _departmentRepository.UpdateAsync(existing);
         }
 
-        public Task DeleteDepartmentAsync(Department department)
+        public Task DeleteDepartmentAsync(int Departmentid)
         {
-            return _departmentRepository.DeleteAsync(department);
+            // Fetching the existing department to ensure it exists before attempting deletion'
+            var existing = _departmentRepository.GetDepartmentByIdAsync(Departmentid).Result;
+            return _departmentRepository.DeleteAsync(existing);
         }
     }
 }

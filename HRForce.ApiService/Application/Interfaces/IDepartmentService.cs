@@ -1,5 +1,5 @@
 ﻿using HRForce.ApiService.Domain;
-
+using HRForce.ApiService.Application.DTO;
 namespace HRForce.ApiService.Application.Interfaces
 {
     public interface IDepartmentService
@@ -8,10 +8,10 @@ namespace HRForce.ApiService.Application.Interfaces
 
         Task<Department?> GetDepartmentByIdAsync(int id);
 
-        Task<Department> CreateDepartmentAsync(Department department);
+        Task<Department> CreateDepartmentAsync(CreateDepartmentDto cDT);
 
-        Task UpdateDepartmentAsync(Department department);
+        Task UpdateDepartmentAsync(UpdateDepartmentDTO uDT);
 
-        Task DeleteDepartmentAsync(Department department);
+        Task DeleteDepartmentAsync(int DepartmentID);
     }
 }

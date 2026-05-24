@@ -1,6 +1,10 @@
-using Microsoft.EntityFrameworkCore;
+using HRForce.ApiService.Application.Interfaces;
+using HRForce.ApiService.Application.Service;
 using HRForce.ApiService.Infrastructure;
+using HRForce.ApiService.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
+using Microsoft.EntityFrameworkCore;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +20,8 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<HrForceDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 
 builder.Services.AddControllers()
     .AddNewtonsoftJson(options =>

@@ -4,15 +4,18 @@ using HRForce.ApiService.Domain;
 using HRForce.ApiService.Application.DTO;
 namespace HRForce.ApiService.Application.Service
 {
-    public class DepartmentService
+    public class DepartmentService: IDepartmentService
     {
-        private readonly DepartmentRepository _departmentRepository;
-        public DepartmentService(IDepartmentRepository departmentRepository) { 
-           _departmentRepository = (DepartmentRepository)departmentRepository;
-        }
+        // FIX 1: Change the field type to the interface
+        private readonly IDepartmentRepository _departmentRepository;
 
-        public async Task<List<DepartmentDTO>> GetAllDepartmentsAsync()
+        // FIX 2: Remove the dangerous explicit cast
+        public DepartmentService(IDepartmentRepository departmentRepository)
         {
+            _departmentRepository = departmentRepository;
+        }
+        public async Task<List<DepartmentDTO>> GetAllDepartmentsAsync()
+        { 
             var departments = await _departmentRepository.GetAllDepartmentsAsync();
 
             return departments.Select(d => new DepartmentDTO
@@ -23,14 +26,26 @@ namespace HRForce.ApiService.Application.Service
             }).ToList();
         }
 
-        public Task<Department?> GetDepartmentByIdAsync(int id)
+        public async Task<DepartmentDTO?> GetDepartmentByIdAsync(int id)
         {
-            return _departmentRepository.GetDepartmentByIdAsync(id);
+            var department = await _departmentRepository.GetDepartmentByIdAsync(id);
+
+            if (department == null)
+                throw new KeyNotFoundException($"Department with ID {id} not found.");
+
+            return new DepartmentDTO
+            {
+                Id = department.Id,
+                DepartmentCode = department.DepartmentCode,
+                DepartmentName = department.DepartmentName,
+                Status = department.Status,
+                CreatedAt = department.CreatedAt,
+                UpdatedAt = department.UpdatedAt
+            }; 
         }
 
-        public Task<Department> CreateDepartmentAsync(CreateDepartmentDto cDTO)
+        public async Task<DepartmentDTO> CreateDepartmentAsync(CreateDepartmentDto cDTO)
         {
-            // Creating DTO and mapping it to domain entity helps prevent direct exposure of database entities through the API contract
             var department = new Department
             {
                 DepartmentCode = cDTO.DepartmentCode,
@@ -39,16 +54,27 @@ namespace HRForce.ApiService.Application.Service
                 CreatedAt = cDTO.CreatedAt
             };
 
-            return _departmentRepository.CreateAsync(department);
+            var created = await _departmentRepository.CreateAsync(department);
+
+            return new DepartmentDTO
+            {
+                Id = created.Id,
+                DepartmentCode = created.DepartmentCode,
+                DepartmentName = created.DepartmentName,
+                Status = (DepartmentStatus)created.Status,
+                CreatedAt = created.CreatedAt
+            };
         }
 
-        public async Task UpdateDepartmentAsync(UpdateDepartmentDTO uDT)
+        public async Task <DepartmentDTO> UpdateDepartmentAsync(int id, UpdateDepartmentDTO uDT)
         {
-            var existing = await _departmentRepository.GetDepartmentByIdAsync(uDT.Id);
+            var existing = await _departmentRepository
+                .GetDepartmentByIdAsync(uDT.Id);
 
-            if(existing == null)
+            if (existing == null)
             {
-                throw new Exception($"Department with ID {uDT.Id} not found.");
+                throw new KeyNotFoundException(
+                    $"Department with ID {uDT.Id} not found.");
             }
 
             existing.DepartmentName = uDT.DepartmentName;
@@ -56,8 +82,17 @@ namespace HRForce.ApiService.Application.Service
             existing.UpdatedAt = uDT.UpdatedAt;
 
             await _departmentRepository.UpdateAsync(existing);
-        }
 
+            return new DepartmentDTO
+            {
+                Id = existing.Id,
+                DepartmentCode = existing.DepartmentCode,
+                DepartmentName = existing.DepartmentName,
+                Status = existing.Status,
+                CreatedAt = existing.CreatedAt,
+                UpdatedAt = existing.UpdatedAt
+            };
+        }
         public async Task DeleteDepartmentAsync(int Departmentid)
         {
         

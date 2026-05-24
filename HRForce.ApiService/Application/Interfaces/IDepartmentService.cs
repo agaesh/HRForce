@@ -1,16 +1,17 @@
 ﻿using HRForce.ApiService.Domain;
 using HRForce.ApiService.Application.DTO;
+using Microsoft.AspNetCore.Mvc;
 namespace HRForce.ApiService.Application.Interfaces
 {
     public interface IDepartmentService
     {
-        Task<List<Department>> GetAllDepartmentsAsync();
+        Task<List<DepartmentDTO>> GetAllDepartmentsAsync();
 
-        Task<Department?> GetDepartmentByIdAsync(int id);
+        Task<DepartmentDTO?> GetDepartmentByIdAsync(int id);
 
-        Task<Department> CreateDepartmentAsync(CreateDepartmentDto cDT);
+        Task<DepartmentDTO> CreateDepartmentAsync(CreateDepartmentDto cDTO);
 
-        Task UpdateDepartmentAsync(UpdateDepartmentDTO uDT);
+        Task<DepartmentDTO> UpdateDepartmentAsync(int id,UpdateDepartmentDTO uDT);
 
         Task DeleteDepartmentAsync(int DepartmentID);
     }

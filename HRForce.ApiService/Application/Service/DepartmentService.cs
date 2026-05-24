@@ -6,11 +6,14 @@ namespace HRForce.ApiService.Application.Service
 {
     public class DepartmentService: IDepartmentService
     {
-        private readonly DepartmentRepository _departmentRepository;
-        public DepartmentService(IDepartmentRepository departmentRepository) { 
-           _departmentRepository = (DepartmentRepository)departmentRepository;
-        }
+        // FIX 1: Change the field type to the interface
+        private readonly IDepartmentRepository _departmentRepository;
 
+        // FIX 2: Remove the dangerous explicit cast
+        public DepartmentService(IDepartmentRepository departmentRepository)
+        {
+            _departmentRepository = departmentRepository;
+        }
         public async Task<List<DepartmentDTO>> GetAllDepartmentsAsync()
         { 
             var departments = await _departmentRepository.GetAllDepartmentsAsync();

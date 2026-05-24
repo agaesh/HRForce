@@ -6,8 +6,11 @@ namespace HRForce.ApiService.Domain
     {
         [Key]
         public int Id { get; set; }
+
+        [MaxLength(20)]
         public string DepartmentCode { get; set; }
 
+        [MaxLength(100)]
         public string DepartmentName { get; set; }
         public DepartmentStatus Status { get; set; }
 

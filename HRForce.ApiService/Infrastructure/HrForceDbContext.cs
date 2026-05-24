@@ -12,6 +12,8 @@ namespace HRForce.ApiService.Infrastructure
         // Add DbSet<T> properties here when you create your entities
         // Example:
         public DbSet<Department> Departments { get; set; }
+        public DbSet<Employee> Employees { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -22,7 +24,21 @@ namespace HRForce.ApiService.Infrastructure
             modelBuilder.Entity<Department>()
                 .HasIndex(d => d.DepartmentCode)
                 .IsUnique();
-        
+
+            modelBuilder.Entity<Employee>()
+                .Property(e => e.Status)
+                .HasConversion<string>();
+
+
+            modelBuilder.Entity<Employee>()
+                .HasIndex(e => e.EmployeeCode)
+                .IsUnique();
+
+            modelBuilder.Entity<Employee>()
+                .HasOne(e => e.Department)
+                .WithMany()
+                .HasForeignKey(e => e.DepartmentId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

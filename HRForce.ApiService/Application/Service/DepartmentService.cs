@@ -22,7 +22,10 @@ namespace HRForce.ApiService.Application.Service
         {
                 Id = d.Id,
                 DepartmentCode = d.DepartmentCode,
-                DepartmentName = d.DepartmentName
+                DepartmentName = d.DepartmentName,
+                Status = d.Status,
+                CreatedAt = d.CreatedAt,
+                UpdatedAt = d.UpdatedAt
             }).ToList();
         }
 

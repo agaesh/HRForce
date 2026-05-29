@@ -82,18 +82,30 @@ public class DepartmentController : ControllerBase
     // POST: api/DepartmentDTO
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPost]
-    public async Task<ActionResult<DepartmentDTO>> PostDepartment(DepartmentDTO departmentdto)
+    public async Task<IActionResult> PostDepartment(CreateDepartmentDto departmentdto)
     {
-        var createdDepartment = await _departmentService.CreateDepartmentAsync(
-            new CreateDepartmentDto
-            {
-                DepartmentCode = departmentdto.DepartmentCode,
-                DepartmentName = departmentdto.DepartmentName,
-                Status = departmentdto.Status,
-                CreatedAt = DateTime.UtcNow
-            });
+        try
+        {
 
-        return CreatedAtAction(nameof(GetDepartmentByID), new { id = createdDepartment.Id },createdDepartment);
+
+            var createdDepartment = await _departmentService.CreateDepartmentAsync(departmentdto);
+
+            return Ok(new
+            {
+                success = true,
+                message = "Department created successfully",
+                data = createdDepartment
+            });
+        }
+        catch (Exception ex)
+    {
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "An error occurred while creating the department.",
+                error = ex.Message
+            });
+        }
     }
 
     // DELETE: api/DepartmentDTO/5

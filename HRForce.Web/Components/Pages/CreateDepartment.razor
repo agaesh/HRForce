@@ -1,0 +1,132 @@
+﻿@page "/departments/create"
+@rendermode InteractiveServer
+
+@using HRForce.Web.DTO
+@inject DepartmentApiClient DepartmentApi
+@inject NavigationManager Navigation
+
+<PageTitle>Create Department</PageTitle>
+
+<h3 class="mb-4">Create Department</h3>
+
+@* Printing Single Error Here*@
+@if (!string.IsNullOrEmpty(ErrorMessage) || (ErrorMessages?.Count > 0))
+{
+    <div class="alert alert-danger">
+        <ul class="mb-0">
+            @*Printing Single Error Here*@
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <li>@ErrorMessage</li>
+            }
+            @* Printing Multi Error Here*@
+            @if (ErrorMessages?.Count > 0)
+            {
+                @foreach (var kvp in ErrorMessages)
+                {
+                    foreach (var message in kvp.Value)
+                    {
+                        <li>@message</li>
+                    }
+                }
+            }
+        </ul>
+    </div>
+}
+
+<EditForm Model="@department"
+          FormName="CreateDepartmentForm"
+          OnValidSubmit="CreateDep">
+
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Department Code</label>
+        <InputText class="form-control"
+                   @bind-Value="department.DepartmentCode" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Department Name</label>
+        <InputText class="form-control"
+                   @bind-Value="department.DepartmentName" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Status</label>
+
+        <InputSelect class="form-select"
+                     @bind-Value="department.Status">
+
+            <option value="">-- Select Status --</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+
+        </InputSelect>
+    </div>
+
+    <button type="submit"
+            class="btn btn-success"
+            disabled="@isSubmitting">
+
+        @if (isSubmitting)
+        {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            <span>Saving...</span>
+        }
+        else
+        {
+            <span>Save</span>
+        }
+    </button>
+
+</EditForm>
+
+@code {
+
+    private bool isSubmitting = false;
+    //Keeping the value Status to true . During the formload, it would be binded to form
+    private CreateDepartmentDto department = new()
+    {
+        Status = "Active"
+    };
+
+    //Use Dictionary because data annotation JSON payload exist with key and value pair
+    public Dictionary<string,List<string>> ErrorMessages;
+    public string ErrorMessage = string.Empty;
+
+
+    private async Task CreateDep()
+    {
+
+        try
+        {
+            isSubmitting = true;
+            var result = await DepartmentApi.CreateDepartmentAsync(department);
+
+            var message = result.Message;
+
+            if (result.Success)
+            {
+                //Once Successfully it navigate to listing
+                Navigation.NavigateTo("/departments");
+            }
+            else if (result.Errors?.Count > 0)
+            {
+                //added this case for printing multi error
+                ErrorMessages = result.Errors;
+            }
+            else
+            {
+                //added this case for printing error that thrown
+                ErrorMessage = result.Error;
+            }
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+        
+    }
+}

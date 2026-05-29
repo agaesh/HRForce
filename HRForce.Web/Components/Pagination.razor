@@ -1,0 +1,56 @@
+﻿
+
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+
+        <li class="page-item @(CurrentPage == 1 ? "disabled" : "")">
+            <button class="page-link" @onclick="() => ChangePage(CurrentPage - 1)">
+                « Prev
+            </button>
+        </li>
+
+       @*  @for (var page = 1; page <= TotalPages; page++)
+        {
+            <li class="page-item @(page == CurrentPage ? "active" : "")">
+                <button class="page-link" @onclick="() => ChangePage(CurrentPage)">
+                    @(page)
+                </button>
+            </li>
+        } *@
+
+        @for (var page = 1; page <= TotalPages; page++)
+        {
+            var p = page;
+
+            <li class="page-item @(p == CurrentPage ? "active" : "")">
+                <button class="page-link"
+                        @onclick="() => ChangePage(p)">
+                    @p
+                </button>
+            </li>
+        }
+
+
+        <li class="page-item @(CurrentPage == TotalPages ? "disabled" : "")">
+            <button class="page-link" @onclick="() => ChangePage(CurrentPage + 1)">
+                Next »
+            </button>
+        </li>
+
+    </ul>
+</nav>
+
+@code {
+    [Parameter] public int CurrentPage { get; set; }
+    [Parameter] public int TotalPages { get; set; }
+    [Parameter] public EventCallback<int> OnPageChanged { get; set; }
+
+    private async Task ChangePage(int page)
+    {
+        if (page >= 1 && page <= TotalPages)
+        {
+            CurrentPage = page;
+            await OnPageChanged.InvokeAsync(page);
+        }
+    }
+}

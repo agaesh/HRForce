@@ -1,0 +1,132 @@
+﻿@using HRForce.Web.DTO
+@inject DepartmentApiClient DepartmentApi
+@rendermode InteractiveServer
+
+<div class="modal fade @(isModalOpen ? "show" : "")"
+     style="display: @(isModalOpen ? "block" : "none"); background: rgba(0,0,0,0.5);"
+     tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Department</h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+
+            <EditForm Model="@updateModel" OnValidSubmit="HandleUpdate">
+                <div class="modal-body">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    @if (errorMessage != null)
+                    {
+                        <div class="alert alert-danger">
+                            @foreach (var error in errorMessage)
+                            {
+                                <p class="mb-0">@error</p>
+                            }
+                        </div>
+                    }else  if(message != "")
+                    {
+                        <div class="alert alert-info">
+                            <p class="mb-0">@message</p>
+                        </div>
+                    }
+
+                    <!-- 1. Read-Only Fields (Id, Code, Created At) -->
+                    <div class="mb-3">
+                        <label class="form-label">Department Code (Not Editable)</label>
+                        <input type="text" class="form-control" value="@readOnlyCode" disabled />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Created At</label>
+                        <input type="text" class="form-control" value="@readOnlyCreatedAt.ToString("g")" disabled />
+                    </div>
+
+                    <!-- 2. Editable Fields (Name, Status) -->
+                    <div class="mb-3">
+                        <label class="form-label">Department Name</label>
+                        <InputText class="form-control" @bind-Value="updateModel.DepartmentName" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <InputSelect class="form-select" @bind-Value="updateModel.Status">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </InputSelect>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="Close">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Changes</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool isModalOpen = false;
+    private string[]? errorMessage;
+    private string message = String.Empty;
+
+    // The DTO used for binding the editable form fields
+    private UpdateDepartmentDTO updateModel = new();
+
+    // Local tracking fields for non-editable display properties
+    private int departmentId;
+    private string readOnlyCode = string.Empty;
+    private DateTime readOnlyCreatedAt;
+
+    [Parameter] public EventCallback OnUpdateSuccess { get; set; }
+
+    // This method takes the full domain/view object from the listing page
+    public void Open(DepartmentDTO existingDept)
+    {
+        departmentId = existingDept.Id;
+        readOnlyCode = existingDept.DepartmentCode;
+        readOnlyCreatedAt = existingDept.CreatedAt;
+
+        // Map the existing editable data over to your Update DTO container
+        updateModel = new UpdateDepartmentDTO
+        {
+            DepartmentName = existingDept.DepartmentName,
+            Status = existingDept.Status,
+            UpdatedAt = DateTime.UtcNow // Set timestamp for this update transaction
+        };
+
+        errorMessage = null;
+        isModalOpen = true;
+        StateHasChanged();
+    }
+
+    public void Close()
+    {
+        isModalOpen = false;
+        errorMessage = [];
+        message = "";
+        StateHasChanged();
+    }
+
+    private async Task HandleUpdate()
+    {
+        try
+        {
+            errorMessage = null;
+
+            // Call your API update endpoint passing the ID and DTO payload
+            var update = await DepartmentApi.UpdateDepartmentAsync(departmentId, updateModel);
+            message = update.Message;
+
+       
+            await OnUpdateSuccess.InvokeAsync();
+            // isModalOpen = false;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message.Split(Environment.NewLine);
+        }
+    }
+}

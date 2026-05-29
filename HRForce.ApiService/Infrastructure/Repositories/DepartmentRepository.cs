@@ -13,22 +13,33 @@ namespace HRForce.ApiService.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<List<Department>> GetAllDepartmentsAsync()
+        public IQueryable<Department> GetAllDepartmentsQueryable()
         {
-            return await _context.Departments.ToListAsync();
+            return _context.Departments.AsQueryable();
         }
-
         public async Task<Department?> GetDepartmentByIdAsync(int id)
         {
             return await _context.Departments
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
 
+        public async Task<bool> GetDepartmentByCode(string code)
+        {
+            return await _context.Departments
+                .AnyAsync(x => x.DepartmentCode == code);
+        }
         public async Task<Department> CreateAsync(Department department)
         {
-            await _context.Departments.AddAsync(department);
-            await _context.SaveChangesAsync();
-            return department;
+            try
+            {
+                await _context.Departments.AddAsync(department);
+                await _context.SaveChangesAsync();
+                return department;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
         public async Task UpdateAsync(Department department)
         {

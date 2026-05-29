@@ -20,7 +20,7 @@ public class DepartmentControllerTests
     public async Task PostDepartment_ReturnsCreatedResult()
     {
         // Arrange
-        var inputDto = new DepartmentDTO
+        var inputDto = new CreateDepartmentDto
         {
             DepartmentCode = "HR01",
             DepartmentName = "HR",
@@ -45,7 +45,7 @@ public class DepartmentControllerTests
         var result = await _controller.PostDepartment(inputDto);
 
         // Assert
-        var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);
+        var createdResult = Assert.IsType<CreatedAtActionResult>(result);
         var returnValue = Assert.IsType<DepartmentDTO>(createdResult.Value);
 
         Assert.Equal(1, returnValue.Id);

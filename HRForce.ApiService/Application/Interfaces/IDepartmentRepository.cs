@@ -4,9 +4,10 @@ namespace HRForce.ApiService.Application.Interfaces
 {
     public interface IDepartmentRepository
     {
-        Task<List<Department>> GetAllDepartmentsAsync();
+        IQueryable<Department> GetAllDepartmentsQueryable();
 
         Task<Department?> GetDepartmentByIdAsync(int id);
+        Task<bool> GetDepartmentByCode(string code);
 
         Task<Department> CreateAsync(Department department);
 

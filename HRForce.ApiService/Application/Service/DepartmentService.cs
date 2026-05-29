@@ -1,7 +1,9 @@
-﻿using HRForce.ApiService.Application.Interfaces;
-using HRForce.ApiService.Infrastructure.Repositories;
+﻿using HRForce.ApiService.Application.DTO;
+using HRForce.ApiService.Application.Interfaces;
 using HRForce.ApiService.Domain;
-using HRForce.ApiService.Application.DTO;
+using HRForce.ApiService.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
+using HRForce.ApiService.Helpers;
 namespace HRForce.ApiService.Application.Service
 {
     public class DepartmentService: IDepartmentService
@@ -14,16 +16,44 @@ namespace HRForce.ApiService.Application.Service
         {
             _departmentRepository = departmentRepository;
         }
-        public async Task<List<DepartmentDTO>> GetAllDepartmentsAsync()
-        { 
-            var departments = await _departmentRepository.GetAllDepartmentsAsync();
-
-            return departments.Select(d => new DepartmentDTO
+        public async Task<PagedResult<DepartmentDTO>> GetAllDepartmentsQueryable(int pageNumber = 1, int pageSize = 10, string search = null)
         {
+            var query = _departmentRepository.GetAllDepartmentsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(d =>
+                    d.DepartmentName.Contains(search) ||
+                    d.DepartmentCode.Contains(search));
+            }
+
+            var totalCount = await query.CountAsync();
+
+         
+            var departments = await query
+                .OrderBy(d => d.DepartmentName)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var items = departments.Select(d => new DepartmentDTO
+            {
                 Id = d.Id,
                 DepartmentCode = d.DepartmentCode,
-                DepartmentName = d.DepartmentName
+                DepartmentName = d.DepartmentName,
+                Status = d.Status,
+                CreatedAt = d.CreatedAt,
+                UpdatedAt = d.UpdatedAt
             }).ToList();
+
+            return new PagedResult<DepartmentDTO>
+            {
+                Items = items,            //filtered and paginated list of items
+                TotalCount = totalCount, // total database count for pagination
+                PageNumber = pageNumber, // add Page number like Page 1, page 2
+                PageSize = pageSize, // it describes how much in a page
+                TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+            };
         }
 
         public async Task<DepartmentDTO?> GetDepartmentByIdAsync(int id)
@@ -46,35 +76,46 @@ namespace HRForce.ApiService.Application.Service
 
         public async Task<DepartmentDTO> CreateDepartmentAsync(CreateDepartmentDto cDTO)
         {
-            var department = new Department
+            try
             {
-                DepartmentCode = cDTO.DepartmentCode,
-                DepartmentName = cDTO.DepartmentName,
-                Status = cDTO.Status,
-                CreatedAt = cDTO.CreatedAt
-            };
+                var department = new Department
+                {
+                    DepartmentCode = cDTO.DepartmentCode,
+                    DepartmentName = cDTO.DepartmentName,
+                    Status = cDTO.Status,
+                    CreatedAt = cDTO.CreatedAt
+                };
 
-            var created = await _departmentRepository.CreateAsync(department);
+                var created = await _departmentRepository.CreateAsync(department);
 
-            return new DepartmentDTO
+                return new DepartmentDTO
+                {
+                    Id = created.Id,
+                    DepartmentCode = created.DepartmentCode,
+                    DepartmentName = created.DepartmentName,
+                    Status = (DepartmentStatus)created.Status,
+                    CreatedAt = created.CreatedAt
+                };
+            }
+            catch (DbUpdateException)
             {
-                Id = created.Id,
-                DepartmentCode = created.DepartmentCode,
-                DepartmentName = created.DepartmentName,
-                Status = (DepartmentStatus)created.Status,
-                CreatedAt = created.CreatedAt
-            };
+                throw new Exception("Department code already exists");
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
 
         public async Task <DepartmentDTO> UpdateDepartmentAsync(int id, UpdateDepartmentDTO uDT)
         {
             var existing = await _departmentRepository
-                .GetDepartmentByIdAsync(uDT.Id);
+                .GetDepartmentByIdAsync(id);
 
             if (existing == null)
             {
                 throw new KeyNotFoundException(
-                    $"Department with ID {uDT.Id} not found.");
+                    $"Department with ID {id} not found.");
             }
 
             existing.DepartmentName = uDT.DepartmentName;

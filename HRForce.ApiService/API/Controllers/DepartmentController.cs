@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using HRForce.ApiService.Application.DTO;
 using HRForce.ApiService.Application.Interfaces;
+using HRForce.ApiService.Helpers;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -14,10 +15,24 @@ public class DepartmentController : ControllerBase
     }
 
     // GET: api/DepartmentDTO
+
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<DepartmentDTO>>> GetDepartments()
+    public async Task<ActionResult<PagedResult<DepartmentDTO>>> GetDepartments(
+       [FromQuery] int pageNumber = 1,
+       [FromQuery] int pageSize = 10, [FromQuery] string search = null)
     { 
-        var departments = await _departmentService.GetAllDepartmentsAsync();
+        // 1. Basic Validation
+        if (pageNumber < 1 || pageSize < 1)
+        {
+            return BadRequest("Page numbers and sizes must be greater than 0.");
+        }
+
+        // 2. Cap the page size to prevent memory exhaustion
+        const int maxPageSize = 50;
+        int actualPageSize = Math.Min(pageSize, maxPageSize);
+
+        // 3. Service call (Service should handle the Mapping/Projection)
+        var departments = await _departmentService.GetAllDepartmentsQueryable(pageNumber, actualPageSize, search);
 
         return Ok(departments);
     }
@@ -41,15 +56,6 @@ public class DepartmentController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> PutDepartment(int id, UpdateDepartmentDTO departmentdto)
     {
-        if (id != departmentdto.Id)
-        {
-            return BadRequest(new
-            {
-                success = false,
-                message = "Department ID mismatch."
-            });
-        }
-
         try
         {
             var updatedDepartment = await _departmentService
@@ -76,18 +82,30 @@ public class DepartmentController : ControllerBase
     // POST: api/DepartmentDTO
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPost]
-    public async Task<ActionResult<DepartmentDTO>> PostDepartment(DepartmentDTO departmentdto)
+    public async Task<IActionResult> PostDepartment(CreateDepartmentDto departmentdto)
     {
-        var createdDepartment = await _departmentService.CreateDepartmentAsync(
-            new CreateDepartmentDto
-            {
-                DepartmentCode = departmentdto.DepartmentCode,
-                DepartmentName = departmentdto.DepartmentName,
-                Status = departmentdto.Status,
-                CreatedAt = DateTime.UtcNow
-            });
+        try
+        {
 
-        return CreatedAtAction(nameof(GetDepartmentByID), new { id = createdDepartment.Id },createdDepartment);
+
+            var createdDepartment = await _departmentService.CreateDepartmentAsync(departmentdto);
+
+            return Ok(new
+            {
+                success = true,
+                message = "Department created successfully",
+                data = createdDepartment
+            });
+        }
+        catch (Exception ex)
+    {
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "An error occurred while creating the department.",
+                error = ex.Message
+            });
+        }
     }
 
     // DELETE: api/DepartmentDTO/5

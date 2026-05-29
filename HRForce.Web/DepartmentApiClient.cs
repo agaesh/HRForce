@@ -38,18 +38,18 @@ public class DepartmentApiClient
     }
 
     // POST: api/Department
-    public async Task<DepartmentDTO?> CreateDepartmentAsync(CreateDepartmentDto dto)
+    public async Task<ApiResponse<DepartmentDTO>> CreateDepartmentAsync(CreateDepartmentDto dto)
     {
         var jsonContent = JsonConvert.SerializeObject(dto);
         var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await _httpClient.PostAsync("api/Department", content);
+        var responseBody = await response.Content.ReadAsStringAsync();
 
-        response.EnsureSuccessStatusCode();
+        // Always deserialize into ApiResponse<DepartmentDTO>
+        var result = JsonConvert.DeserializeObject<ApiResponse<DepartmentDTO>>(responseBody)!;
 
-        var json = await response.Content.ReadAsStringAsync();
-
-        return JsonConvert.DeserializeObject<DepartmentDTO>(json);
+        return result;
     }
 
     // PUT: api/Department/5

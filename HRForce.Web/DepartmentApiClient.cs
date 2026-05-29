@@ -53,14 +53,33 @@ public class DepartmentApiClient
     }
 
     // PUT: api/Department/5
-    public async Task<bool> UpdateDepartmentAsync(int id, UpdateDepartmentDTO dto)
+    public async Task<ApiResponse<DepartmentDTO>> UpdateDepartmentAsync(int id, UpdateDepartmentDTO dto)
+    {
+        try
     {
         var jsonContent = JsonConvert.SerializeObject(dto);
         var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
         var response = await _httpClient.PutAsync($"api/Department/{id}", content);
 
-        return response.IsSuccessStatusCode;
+            var JSONBody = JObject.Parse(await response.Content.ReadAsStringAsync());
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            var result = JsonConvert.DeserializeObject<ApiResponse<DepartmentDTO>>(responseBody);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception(result?.Message ?? "Update failed");
+            }
+
+            return result!;
+        
+        }
+        catch (Exception)
+        {
+            throw;
+        }
     }
 
     // DELETE: api/Department/5

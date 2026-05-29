@@ -78,11 +78,6 @@ namespace HRForce.ApiService.Application.Service
         {
             try
             {
-                var exists = await _departmentRepository.GetDepartmentByCode(cDTO.DepartmentCode);
-
-                if (exists)
-                    throw new Exception("Department code already exists");
-
                 var department = new Department
                 {
                     DepartmentCode = cDTO.DepartmentCode,
@@ -102,7 +97,11 @@ namespace HRForce.ApiService.Application.Service
                     CreatedAt = created.CreatedAt
                 };
             }
-            catch(Exception ex)
+            catch (DbUpdateException)
+            {
+                throw new Exception("Department code already exists");
+            }
+            catch (Exception ex)
             {
                 throw;
             }

@@ -36,6 +36,21 @@ public class DepartmentApiClient
         return JsonConvert.DeserializeObject<DepartmentDTO>(json);
     }
 
+    public async Task<IEnumerable<DepartmentLookUPDTO>> GetDepartmentsByStatusAsync(string status)
+    {
+        var response = await _httpClient.GetAsync($"api/Department/status/{status}");
+        if (!response.IsSuccessStatusCode)
+            return Enumerable.Empty<DepartmentLookUPDTO>();
+
+        var json = await response.Content.ReadAsStringAsync();
+
+        return JsonConvert.DeserializeObject<IEnumerable<DepartmentLookUPDTO>>(json)
+               ?? Enumerable.Empty<DepartmentLookUPDTO>();
+    }
+
+
+
+
     // POST: api/Department
     public async Task<ApiResponse<DepartmentDTO>> CreateDepartmentAsync(CreateDepartmentDto dto)
     {
@@ -84,6 +99,7 @@ public class DepartmentApiClient
     // DELETE: api/Department/5
     public async Task<bool> DeleteDepartmentAsync(int id)
     {
+        //to prevent the 
         var response = await _httpClient.DeleteAsync($"api/Department/{id}");
 
         return response.IsSuccessStatusCode;

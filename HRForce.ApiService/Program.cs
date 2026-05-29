@@ -20,6 +20,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<HrForceDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 
@@ -36,12 +37,15 @@ builder.Services.AddControllers()
 
 var app = builder.Build();
 
+
+
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseDeveloperExceptionPage();
 }
 
 app.MapDefaultEndpoints();

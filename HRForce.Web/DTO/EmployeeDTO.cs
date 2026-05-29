@@ -1,8 +1,6 @@
-﻿using HRForce.ApiService.Domain;
-
-namespace HRForce.ApiService.Application.DTO
+﻿namespace HRForce.Web.DTO
 {
-    public class EmployeeDto
+    public class EmployeeDTO
     {
         public int Id { get; set; }
 
@@ -18,11 +16,8 @@ namespace HRForce.ApiService.Application.DTO
 
         public string? DepartmentName { get; set; }
 
-        public EmployeeStatus Status { get; set; }
+        public string Status { get; set; }
 
         public DateTime CreatedAt { get; set; }
-
-        public DateTime? UpdatedAt { get; set; }
     }
 }
-

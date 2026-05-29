@@ -78,13 +78,13 @@ else
     </table>
 }
 
-<ConfirmDialog IsVisible="isDelete"
+<ConfirmDialog IsVisible="isDeleteModalOpen"
                    title="Confirm Deletion"
                    Message="Are you sure you want to delete this department?"
                    ConfirmText="Yes, Delete"
                    CancelText="Cancel"
                    OnConfirm="@DeleteDepartment"
-                   OnCancel="@(() => isDelete = false)" />
+                   OnCancel="@(() => isDeleteModalOpen = false)" />
 
 <EditDepartment @ref="EditDepartmentModal" OnUpdateSuccess="async () => await RefreshTableData()" />
 
@@ -92,7 +92,7 @@ else
 @code {
     private List<DepartmentDTO>? departments;
     private bool isLoading = false;
-    private bool isDelete = false;
+    private bool isDeleteModalOpen = false;
     private bool isDeleteSuccess = false;
     private int selectedDepartmentId;
     private List<int> DeletedIds = new();
@@ -101,11 +101,11 @@ else
 
 
     //Pagination Variable 
-	private int PageNumber = 1;
-	private int CurrentPage = 1;
-	private int TotalPages = 1;
-	private int PageSize = 10;
-	private int TotalRecords = 38;
+    private int PageNumber = 1;
+    private int CurrentPage = 1;
+    private int TotalPages = 1;
+    private int PageSize = 10;
+    private int TotalRecords = 38;
 
 
 
@@ -154,10 +154,10 @@ else
     }
 
 
-	protected void CreateDepartment()
-	{
-		Navigation.NavigateTo("/departments/create");
-	}
+    protected void CreateDepartment()
+    {
+        Navigation.NavigateTo("/departments/create");
+    }
 
     protected void EditDepartment(DepartmentDTO department)
     {
@@ -167,7 +167,7 @@ else
 
     protected void OpenDeleteModal(int departmentid)
     {
-        isDelete = true;
+        isDeleteModalOpen = true;
         selectedDepartmentId = departmentid;
         StateHasChanged(); // required
     }
@@ -181,8 +181,9 @@ else
             var item = departments.FirstOrDefault(d => d.Id == selectedDepartmentId);
             if (item != null)
                 DeletedIds.Add(item.Id);
-          
-			
+            await RefreshTableData();
+            isDeleteModalOpen = false;
+
         }
         catch (Exception ex)
         {

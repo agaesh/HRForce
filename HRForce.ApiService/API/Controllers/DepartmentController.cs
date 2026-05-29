@@ -50,6 +50,16 @@ public class DepartmentController : ControllerBase
 
         return Ok(department);
     }
+    [HttpGet("status/{status}")]
+    public async Task<ActionResult<IEnumerable<DepartmentDTO>>> GetDepartmentsByStatus(string status)
+    {
+        if (string.IsNullOrWhiteSpace(status))
+            return BadRequest("Status is required.");
+
+        var departments = await _departmentService.GetDepartmentsByStatusAsync(status);
+
+        return Ok(departments);
+    }
 
     // PUT: api/DepartmentDTO/5
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -69,7 +79,7 @@ public class DepartmentController : ControllerBase
             });
         }
 
-        catch (KeyNotFoundException ex)
+        catch (Exception ex)
         {
             return NotFound(new
             {
@@ -86,8 +96,6 @@ public class DepartmentController : ControllerBase
     {
         try
         {
-
-
             var createdDepartment = await _departmentService.CreateDepartmentAsync(departmentdto);
 
             return Ok(new
@@ -112,26 +120,25 @@ public class DepartmentController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteDepartment(int id)
     {
-
-        await _departmentService.DeleteDepartmentAsync(id);
-
-        return Ok(new
+        try
         {
-            success = true,
-            message = "Department deleted successfully.",
-            deletedDepartmentId = id
-        });
-    }
+            await _departmentService.DeleteDepartmentAsync(id);
 
-    private async Task<bool> DepartmentDTOExists(int? id)
-    {
-        var department = await _departmentService.GetDepartmentByIdAsync(id ?? 0);
-
-        if (department != null)
-        {
-            return true;
+            return Ok(new
+            {
+                success = true,
+                message = "Department deleted successfully.",
+                deletedDepartmentId = id
+            });
         }
-
-        return false;
+        catch ( KeyNotFoundException ex)
+        {
+            return NotFound(new
+            {
+                success = false,
+                message = ex.Message
+            });
+        }
+        
     }
 }

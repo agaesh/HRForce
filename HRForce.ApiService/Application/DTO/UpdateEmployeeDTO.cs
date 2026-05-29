@@ -8,9 +8,9 @@ namespace HRForce.ApiService.Application.DTO
         [Required]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Employee Code is required")]
-        [StringLength(20, MinimumLength = 2)]
-        public string EmployeeCode { get; set; } = string.Empty;
+        //[Required(ErrorMessage = "Employee Code is required")]
+        //[StringLength(20, MinimumLength = 2)]
+        //public string EmployeeCode { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Full Name is required")]
         public string FullName { get; set; } = string.Empty;

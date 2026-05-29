@@ -25,6 +25,11 @@ builder.Services.AddHttpClient<DepartmentApiClient>(client =>
     client.BaseAddress = new Uri("https://localhost:7386/");
 });
 
+builder.Services.AddHttpClient<EmployeeApiClient>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7386/");
+});
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())

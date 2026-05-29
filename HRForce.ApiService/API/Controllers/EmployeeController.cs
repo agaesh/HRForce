@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using HRForce.ApiService.Application.DTO;
+﻿using HRForce.ApiService.Application.DTO;
 using HRForce.ApiService.Application.Interfaces;
+using HRForce.ApiService.Helpers;
+using Microsoft.AspNetCore.Mvc;
 
 namespace HRForce.ApiService.API.Controllers
 {
@@ -17,11 +18,26 @@ namespace HRForce.ApiService.API.Controllers
 
         // GET: api/Employee
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<EmployeeDto>>> GetEmployees()
+        public async Task<ActionResult<PagedResult<EmployeeDto>>> GetEmployees(
+        [FromQuery] int pageNumber = 1,[FromQuery] int pageSize = 10,[FromQuery] string search = null, string status = null)
         {
-            var employees = await _employeeService.GetAllEmployeesAsync();
+            // 1. Basic Validation
+            if (pageNumber < 1 || pageSize < 1)
+            {
+                return BadRequest("Page numbers and sizes must be greater than 0.");
+            }
+
+            // 2. Cap the page size to prevent memory exhaustion
+            const int maxPageSize = 50;
+            int actualPageSize = Math.Min(pageSize, maxPageSize);
+
+            // 3. Service call (Service handles mapping/projection)
+            var employees = await _employeeService.GetAllEmployeesQueryable(pageNumber, actualPageSize, search, status);
+
+            // 4. Return paged result
             return Ok(employees);
         }
+
 
         // GET: api/Employee/5
         [HttpGet("{id}")]
@@ -41,29 +57,34 @@ namespace HRForce.ApiService.API.Controllers
         [HttpPost]
         public async Task<ActionResult<EmployeeDto>> PostEmployee(CreateEmployeeDto dto)
         {
-            var createdEmployee = await _employeeService.CreateEmployeeAsync(dto);
+            try
+            {
+                var createdEmployee = await _employeeService.CreateEmployeeAsync(dto);
 
-            return CreatedAtAction(
-                nameof(GetEmployeeById),
-                new { id = createdEmployee.Id },
-                createdEmployee
-            );
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Department created successfully",
+                    data = createdEmployee
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while creating the Employee.",
+                    error = ex.Message
+                });
+            }
+         
         }
 
         // PUT: api/Employee/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutEmployee(int id, UpdateEmployeeDto dto)
         {
-            //purposefully left with success mesage and having not return obj
-            if (id != dto.Id)
-            {
-                return BadRequest(new
-                {
-                    success = false,
-                    message = "Employee ID mismatch."
-                });
-            }
-
             try
             {
                 var updatedEmployee = await _employeeService.UpdateEmployeeAsync(id, dto);

@@ -13,11 +13,11 @@ namespace HRForce.ApiService.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<List<Employee>> GetAllEmployeesAsync()
+        public IQueryable<Employee> GetAllEmployeesQueryable()
         {
-            return await _context.Employees
+            return _context.Employees
                 .Include(e => e.Department)
-                .ToListAsync();
+                .AsQueryable();
         }
 
         public async Task<Employee?> GetEmployeeByIdAsync(int id)

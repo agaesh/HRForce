@@ -4,6 +4,7 @@ using HRForce.ApiService.Domain;
 using HRForce.ApiService.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using HRForce.ApiService.Helpers;
+using Microsoft.AspNetCore.Mvc;
 namespace HRForce.ApiService.Application.Service
 {
     public class DepartmentService: IDepartmentService
@@ -72,6 +73,19 @@ namespace HRForce.ApiService.Application.Service
                 CreatedAt = department.CreatedAt,
                 UpdatedAt = department.UpdatedAt
             }; 
+        }
+
+        [HttpGet("Status/{status}")]
+        public async Task<IEnumerable<DepartmentLookUPDTO>> GetDepartmentsByStatusAsync(string Status)
+        {
+            var departments = await _departmentRepository.GetDepartmentsByStatusAsync(Status);
+
+            return departments.Select(d => new DepartmentLookUPDTO
+            {
+                Id = d.Id,
+                DepartmentCode = d.DepartmentCode,
+                DepartmentName = d.DepartmentName
+            }).ToList();
         }
 
         public async Task<DepartmentDTO> CreateDepartmentAsync(CreateDepartmentDto cDTO)

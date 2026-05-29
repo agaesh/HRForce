@@ -1,11 +1,10 @@
-﻿using HRForce.ApiService.Domain;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace HRForce.ApiService.Application.DTO
+namespace HRForce.Web.DTO
 {
-    public class EmployeeDto
+    public class UpdateEmployeeDTO
     {
         public int Id { get; set; }
-
         public string EmployeeCode { get; set; } = string.Empty;
 
         public string FullName { get; set; } = string.Empty;
@@ -14,15 +13,11 @@ namespace HRForce.ApiService.Application.DTO
 
         public string PhoneNumber { get; set; } = string.Empty;
 
+        [Required]
         public int DepartmentId { get; set; }
 
-        public string? DepartmentName { get; set; }
-
-        public EmployeeStatus Status { get; set; }
-
-        public DateTime CreatedAt { get; set; }
+        public string Status { get; set; }
 
         public DateTime? UpdatedAt { get; set; }
     }
 }
-

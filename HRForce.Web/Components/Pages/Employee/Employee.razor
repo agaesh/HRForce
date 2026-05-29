@@ -1,0 +1,250 @@
+﻿@page "/employees"
+
+@rendermode InteractiveServer
+@using HRForce.Web.DTO
+@inject EmployeeApiClient EmployeeApi
+@inject ILogger<Employee> Logger
+@inject NavigationManager Navigation
+
+<PageTitle>Employees</PageTitle>
+
+<h3 class="mb-3">Employees</h3>
+
+@if (isLoading)
+{
+    <p><em>Loading...</em></p>
+}
+else if (employees == null || !employees.Any())
+{
+    <p>No employees found.</p>
+}
+else
+{
+   <div>
+        <div class="btn-group mb-3" role="group">
+            <button type="button" class="btn btn-success" @onclick="() => CreateEmployee()">
+                + Create Employee
+            </button>
+
+            <button type="button" class="btn btn-outline-primary">
+                Export to Excel
+            </button>
+        </div>
+        <div class="d-flex mb-3 gap-2">
+            <!-- Search box -->
+            <input type="text"
+                   class="form-control"
+                   placeholder="Search by name or code..."
+                   @bind="searchTerm"
+                   @oninput="SearchEmployees" />
+
+            <!-- Status dropdown -->
+            <select @bind="Status" @bind:after="OnStatusChanged" class="form-select" style="width:200px;">
+                <option value="">-- Select Status --</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="Deleted">Deleted</option>
+            </select>
+        </div>
+
+
+
+   </div>
+    
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th style="width:5%;">ID</th>
+                <th style="width:10%;">Employee Code</th>
+                <th style="width:15%;">Full Name</th>
+                <th style="width:20%;">Email</th>
+                <th style="width:12%;">Phone Number</th>
+                <th style="width:15%;">Department</th>
+                <th style="width:8%;">Status</th>
+                <th style="width:10%;">Created At</th>
+                <th style="width:10%;">Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        @foreach (var employee in employees)
+        {
+            <tr class="@(employee.Status.ToLower() == "deleted" || DeletedIds.Contains(employee.Id)
+                            ? "opacity-50 table-secondary" : "")">
+                <td>@employee.Id</td>
+                <td>@employee.EmployeeCode</td>
+                <td>@employee.FullName</td>
+                <td>@employee.Email</td>
+                <td>@employee.PhoneNumber</td>
+                <td>@employee.DepartmentName</td>
+                <td>@employee.Status</td>
+                <td>@employee.CreatedAt.ToString("dd/MM/yyyy")</td>
+                <td>
+                    <div class="btn-group d-flex gap-2" role="group">
+                        <button class="btn btn-sm btn-primary">View</button>
+                        <button class="btn btn-sm btn-warning" @onclick="() => EditEmployee(employee)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => OpenDeleteModal(employee.Id)">
+                            Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        }
+        </tbody>
+
+
+        <Pagination CurrentPage="CurrentPage"
+                    TotalPages="TotalPages"
+                    OnPageChanged="@(page => RefreshTableData(page, PageSize))" />
+    </table>
+}
+
+<ConfirmDialog IsVisible="isDeleteModalOpen"
+               Title="Confirm Deletion"
+               Message="Are you sure you want to delete this employee?"
+               ConfirmText="Yes, Delete"
+               CancelText="Cancel"
+               OnConfirm="@DeleteEmployee"
+               OnCancel="@(() => isDeleteModalOpen = false)" />
+
+<EditEmployee @ref="EditEmployeeModal" OnUpdateSuccess="async () => await RefreshTableData()" />
+
+@code {
+    private List<EmployeeDTO>? employees;
+    private bool isLoading = false;
+    private bool isDeleteModalOpen = false;
+    private int selectedEmployeeId;
+    private List<int> DeletedIds = new();
+    private EditEmployee EditEmployeeModal = default!;
+
+    // Pagination
+    private int CurrentPage = 1;
+    private int TotalPages = 1;
+    private int PageSize = 10;
+    private int TotalRecords = 0;
+    private int PageNumber = 1;
+
+    private string searchTerm;
+    private string Status;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Status = String.Empty;
+            await RefreshTableData();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading employees");
+            employees = new List<EmployeeDTO>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task RefreshTableData(int pageNumber = 1, int pageSize = 10)
+    {
+        try
+        {
+            isLoading = true;
+
+            var result = await EmployeeApi.GetEmployeesAsync(pageNumber, pageSize);
+
+            employees = result.Items ?? new List<EmployeeDTO>();
+            TotalPages = result.TotalPages;
+            TotalRecords = result.TotalCount;
+            CurrentPage = result.PageNumber;
+            pageNumber = result.PageNumber;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading employees");
+            employees = new List<EmployeeDTO>();
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    protected async Task SearchEmployees()
+    {
+        try
+        {
+            isLoading = true;
+            PageNumber = 1; // Reset to first page on new search
+            PageSize = 10;
+
+            var result = await EmployeeApi.GetEmployeesAsync(PageNumber,PageSize, searchTerm,Status);
+            employees = result.Items ?? new List<EmployeeDTO>();
+            TotalPages = result.TotalPages;
+            TotalRecords = result.TotalCount;
+            CurrentPage = result.PageNumber;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error searching employees");
+            employees = new List<EmployeeDTO>();
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    protected void CreateEmployee()
+    {
+        Navigation.NavigateTo("/employees/create");
+    }
+
+    protected void EditEmployee(EmployeeDTO employee)
+    {
+        EditEmployeeModal.Open(employee);
+    }
+
+    protected void OpenDeleteModal(int employeeId)
+    {
+        isDeleteModalOpen = true;
+        selectedEmployeeId = employeeId;
+        StateHasChanged();
+    }
+
+    protected async Task DeleteEmployee()
+    {
+        try
+        {
+            await EmployeeApi.DeleteEmployeeAsync(selectedEmployeeId);
+
+            var item = employees.FirstOrDefault(e => e.Id == selectedEmployeeId);
+            if (item != null)
+                DeletedIds.Add(item.Id);
+
+            await RefreshTableData();
+			isDeleteModalOpen = false;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error deleting employee");
+        }
+    }
+
+    private async Task OnStatusChanged()
+    {
+        try
+        {
+            // Status = eventArgs.Value?.ToString();
+            await SearchEmployees();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error filtering employees by status");
+        }
+    }
+
+}

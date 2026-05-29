@@ -1,0 +1,169 @@
+﻿@page "/employees/create"
+@rendermode InteractiveServer
+
+@using HRForce.Web.DTO
+@inject EmployeeApiClient EmployeeApi
+@inject DepartmentApiClient DepartmentApi
+@inject NavigationManager Navigation
+
+<PageTitle>Create Employee</PageTitle>
+
+<h3 class="mb-4">Create Employee</h3>
+
+@if (!string.IsNullOrEmpty(ErrorMessage) || (ErrorMessages?.Count > 0))
+{
+    <div class="alert alert-danger">
+        <ul class="mb-0">
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <li>@ErrorMessage</li>
+            }
+            @if (ErrorMessages?.Count > 0)
+            {
+                @foreach (var kvp in ErrorMessages)
+                {
+                    foreach (var message in kvp.Value)
+                    {
+                        <li>@message</li>
+                    }
+                }
+            }
+        </ul>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(successmessage))
+{
+    <div class="alert alert-success">
+       @successmessage
+    </div>
+}
+
+
+
+<EditForm Model="@employee"
+          FormName="CreateEmployeeForm"
+          OnValidSubmit="CreateEmp">
+
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Employee Code</label>
+        <InputText class="form-control"
+                   @bind-Value="employee.EmployeeCode" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Full Name</label>
+        <InputText class="form-control"
+                   @bind-Value="employee.FullName" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <InputText class="form-control"
+                   @bind-Value="employee.Email" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Phone Number</label>
+        <InputText class="form-control"
+                   @bind-Value="employee.PhoneNumber" />
+    </div>
+
+    
+    <div class="mb-3">
+        <label class="form-label">Department</label>
+        <InputSelect class="form-select" @bind-Value="employee.DepartmentId">
+            <option value="">-- Select Department --</option>
+            @if (departmentLookUp != null)
+            {
+                @foreach (var dept in departmentLookUp)
+                {
+                    <option value="@dept.Id">@dept.DepartmentName (@dept.DepartmentCode)</option>
+                }
+            }
+        </InputSelect>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Status</label>
+        <InputSelect class="form-select"
+                     @bind-Value="employee.Status">
+            <option value="">-- Select Status --</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+        </InputSelect>
+    </div>
+
+    <button type="submit"
+            class="btn btn-success"
+            disabled="@isSubmitting">
+
+        @if (isSubmitting)
+        {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            <span>Saving...</span>
+        }
+        else
+        {
+            <span>Save</span>
+        }
+    </button>
+</EditForm>
+
+@code {
+    private bool isSubmitting = false;
+
+    private CreateEmployeeDTO employee = new()
+    {
+        Status = "Active"
+    };
+
+    public Dictionary<string, List<string>> ErrorMessages;
+    public string ErrorMessage = string.Empty;
+
+    private IEnumerable<DepartmentLookUPDTO> departmentLookUp = Enumerable.Empty<DepartmentLookUPDTO>();
+
+    private string successmessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load departments for dropdown
+        var result = await DepartmentApi.GetDepartmentsByStatusAsync("Active");
+        departmentLookUp = result; // assuming PagedResult<DepartmentDTO>
+    }
+
+    private async Task CreateEmp()
+    {
+        try
+        {
+            //Cleaering message from the ui
+            isSubmitting = true;
+            ErrorMessage = "";
+            ErrorMessages = new Dictionary<string, List<string>>();
+            successmessage = "";
+
+            var result = await EmployeeApi.CreateEmployeeAsync(employee);
+
+            if (result.Success)
+            {
+                // Navigation.NavigateTo("/employees");
+                successmessage = "Employee has been Created Successfully";
+            }
+            else if (result.Errors?.Count > 0)
+            {
+                ErrorMessages = result.Errors;
+            }
+            else
+            {
+                ErrorMessage = result.Error;
+            }
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+}

@@ -11,6 +11,8 @@ namespace HRForce.ApiService.Application.Interfaces
 
         Task<DepartmentDTO?> GetDepartmentByIdAsync(int id);
 
+        Task<IEnumerable<DepartmentLookUPDTO>> GetDepartmentsByStatusAsync(string Status);
+
         Task<DepartmentDTO> CreateDepartmentAsync(CreateDepartmentDto cDTO);
 
         Task<DepartmentDTO> UpdateDepartmentAsync(int id,UpdateDepartmentDTO uDT);

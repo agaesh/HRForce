@@ -1,4 +1,5 @@
 ﻿@using HRForce.Web.DTO
+@inject EmployeeApiClient EmployeeApi
 @inject DepartmentApiClient DepartmentApi
 @rendermode InteractiveServer
 
@@ -8,7 +9,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Edit Department</h5>
+                <h5 class="modal-title">Edit Employee</h5>
                 <button type="button" class="btn-close" @onclick="Close"></button>
             </div>
 
@@ -25,7 +26,8 @@
                                 <p class="mb-0">@error</p>
                             }
                         </div>
-                    }else  if(message != "")
+                    }
+                    else if (!string.IsNullOrEmpty(message))
                     {
                         <div class="alert alert-info">
                             <p class="mb-0">@message</p>
@@ -34,7 +36,7 @@
 
                     <!-- 1. Read-Only Fields (Id, Code, Created At) -->
                     <div class="mb-3">
-                        <label class="form-label">Department Code (Not Editable)</label>
+                        <label class="form-label">Employee Code (Not Editable)</label>
                         <input type="text" class="form-control" value="@readOnlyCode" disabled />
                     </div>
 
@@ -43,10 +45,31 @@
                         <input type="text" class="form-control" value="@readOnlyCreatedAt.ToString("g")" disabled />
                     </div>
 
-                    <!-- 2. Editable Fields (Name, Status) -->
+                    <!-- 2. Editable Fields (FullName, Email, PhoneNumber, Status) -->
                     <div class="mb-3">
-                        <label class="form-label">Department Name</label>
-                        <InputText class="form-control" @bind-Value="updateModel.DepartmentName" />
+                        <label class="form-label">Full Name</label>
+                        <InputText class="form-control" @bind-Value="updateModel.FullName" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <InputText class="form-control" @bind-Value="updateModel.Email" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Phone Number</label>
+                        <InputText class="form-control" @bind-Value="updateModel.PhoneNumber" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Department</label>
+                        <select class="form-select" @bind="updateModel.DepartmentId">
+                            <option value="">-- Select Department --</option>
+                            @foreach (var dept in departmentLookUp)
+                            {
+                                <option value="@dept.Id">@dept.DepartmentCode - @dept.DepartmentName</option>
+                            }
+                        </select>
                     </div>
 
                     <div class="mb-3">
@@ -59,7 +82,7 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="Close">Cancel</button>
+                    <button type="button" class="btn btn-secondary" @onclick="Close">Close</button>
                     <button type="submit" class="btn btn-primary">Update Changes</button>
                 </div>
             </EditForm>
@@ -70,38 +93,44 @@
 @code {
     private bool isModalOpen = false;
     private string[]? errorMessage;
-    private string message = String.Empty;
+    private string message = string.Empty;
 
-    // The DTO used for binding the editable form fields
-    private UpdateDepartmentDTO updateModel = new();
+    // DTO for editable fields
+    private UpdateEmployeeDTO updateModel = new();
 
-    // Local tracking fields for non-editable display properties
-    private int departmentId;
+    // Read-only display properties
+    private int employeeId;
     private string readOnlyCode = string.Empty;
     private DateTime readOnlyCreatedAt;
 
     [Parameter] public EventCallback OnUpdateSuccess { get; set; }
 
-    // This method takes the full domain/view object from the listing page
-    public void Open(DepartmentDTO existingDept)
-    {
-        departmentId = existingDept.Id;
-        readOnlyCode = existingDept.DepartmentCode;
-        readOnlyCreatedAt = existingDept.CreatedAt;
+    private IEnumerable<DepartmentLookUPDTO> departmentLookUp = Enumerable.Empty<DepartmentLookUPDTO>();
 
-        // Map the existing editable data over to your Update DTO container
-        updateModel = new UpdateDepartmentDTO
+
+    public async Task Open(EmployeeDTO existingEmp)
+    {
+        employeeId = existingEmp.Id;
+        readOnlyCode = existingEmp.EmployeeCode;
+        readOnlyCreatedAt = existingEmp.CreatedAt;
+
+        updateModel = new UpdateEmployeeDTO
         {
-            DepartmentName = existingDept.DepartmentName,
-            Status = existingDept.Status,
-            UpdatedAt = DateTime.UtcNow // Set timestamp for this update transaction
+            FullName = existingEmp.FullName,
+            Email = existingEmp.Email,
+            PhoneNumber = existingEmp.PhoneNumber,
+            Status = existingEmp.Status,
+            UpdatedAt = DateTime.UtcNow,
+            DepartmentId = existingEmp.DepartmentId // pre-select current department
         };
+
+        // Await ensures dropdown is populated before modal shows
+        departmentLookUp = await DepartmentApi.GetDepartmentsByStatusAsync("ACTIVE");
 
         errorMessage = null;
         isModalOpen = true;
         StateHasChanged();
     }
-
     public void Close()
     {
         isModalOpen = false;
@@ -116,17 +145,21 @@
         {
             errorMessage = null;
 
-            // Call your API update endpoint passing the ID and DTO payload
-            var update = await DepartmentApi.UpdateDepartmentAsync(departmentId, updateModel);
+            var update = await EmployeeApi.UpdateEmployeeAsync(employeeId, updateModel);
             message = update.Message;
 
-
             await OnUpdateSuccess.InvokeAsync();
-            // isModalOpen = false;
         }
         catch (Exception ex)
         {
+            
             errorMessage = ex.Message.Split(Environment.NewLine);
         }
+    }
+
+    private async Task GetActiveDepartments()
+    {
+        departmentLookUp = await DepartmentApi.GetDepartmentsByStatusAsync("ACTIVE");
+
     }
 }

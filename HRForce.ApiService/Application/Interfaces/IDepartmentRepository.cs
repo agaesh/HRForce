@@ -1,4 +1,5 @@
 ﻿using HRForce.ApiService.Domain;
+using OpenTelemetry.Trace;
 
 namespace HRForce.ApiService.Application.Interfaces
 {
@@ -14,5 +15,7 @@ namespace HRForce.ApiService.Application.Interfaces
         Task UpdateAsync(Department department);
 
         Task DeleteAsync(Department department);
+
+        Task<IEnumerable<Department>> GetDepartmentsByStatusAsync(string status);
     }
 }

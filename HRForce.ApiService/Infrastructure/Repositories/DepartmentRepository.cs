@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using HRForce.ApiService.Application.Interfaces;
+using HRForce.ApiService.Helpers;
 namespace HRForce.ApiService.Infrastructure.Repositories
 {
     public class DepartmentRepository: IDepartmentRepository
@@ -22,7 +23,14 @@ namespace HRForce.ApiService.Infrastructure.Repositories
             return await _context.Departments
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
-
+        public async Task<IEnumerable<Department>> GetDepartmentsByStatusAsync(string status)
+        {
+            var parsedStatus = Converter.ConvertStringToEnum<DepartmentStatus>(status);
+            
+            return await _context.Departments
+                .Where(d => d.Status == parsedStatus)
+                .ToListAsync();
+        }
         public async Task<bool> GetDepartmentByCode(string code)
         {
             return await _context.Departments

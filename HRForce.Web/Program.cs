@@ -1,5 +1,6 @@
 using HRForce.Web;
 using HRForce.Web.Components;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,11 @@ builder.Services.AddHttpClient<WeatherApiClient>(client =>
         // Learn more about service discovery scheme resolution at https://aka.ms/dotnet/sdschemes.
         client.BaseAddress = new("https+http://apiservice");
     });
+
+builder.Services.AddHttpClient<DepartmentApiClient>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7386/");
+});
 
 var app = builder.Build();
 

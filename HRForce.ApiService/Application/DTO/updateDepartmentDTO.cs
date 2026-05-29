@@ -5,7 +5,7 @@ namespace HRForce.ApiService.Application.DTO
 {
     public class UpdateDepartmentDTO
     {
-        public int Id { get; set; }
+        //public int Id { get; set; }
 
         [Required(ErrorMessage = "Department Name is required")]
         public string DepartmentName { get; set; }

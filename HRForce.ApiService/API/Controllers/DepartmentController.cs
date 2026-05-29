@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using HRForce.ApiService.Application.DTO;
 using HRForce.ApiService.Application.Interfaces;
+using HRForce.ApiService.Helpers;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -55,15 +56,6 @@ public class DepartmentController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> PutDepartment(int id, UpdateDepartmentDTO departmentdto)
     {
-        if (id != departmentdto.Id)
-        {
-            return BadRequest(new
-            {
-                success = false,
-                message = "Department ID mismatch."
-            });
-        }
-
         try
         {
             var updatedDepartment = await _departmentService

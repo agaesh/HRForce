@@ -1,7 +1,8 @@
-﻿using System.Net.Http;
-using System.Text;
+﻿using HRForce.Web.DTO;
+using HRForce.Web.Helpers;
 using Newtonsoft.Json;
-using HRForce.Web.DTO;
+using Newtonsoft.Json.Linq;
+using System.Text;
 
 public class DepartmentApiClient
 {
@@ -13,15 +14,13 @@ public class DepartmentApiClient
     }
 
     // GET: api/Department
-    public async Task<List<DepartmentDTO>?> GetDepartmentsAsync()
+    public async Task<PagedResult<DepartmentDTO>> GetDepartmentsAsync(int pageNumber = 1, int pageSize = 10)
     {
-        var response = await _httpClient.GetAsync("api/Department");
+        var response = await _httpClient.GetFromJsonAsync<PagedResult<DepartmentDTO>>(
+            $"api/department?pageNumber={pageNumber}&pageSize={pageSize}"
+        );
 
-        response.EnsureSuccessStatusCode();
-
-        var json = await response.Content.ReadAsStringAsync();
-
-        return JsonConvert.DeserializeObject<List<DepartmentDTO>>(json);
+        return response ?? new PagedResult<DepartmentDTO>();
     }
 
     // GET: api/Department/5
@@ -56,11 +55,11 @@ public class DepartmentApiClient
     public async Task<ApiResponse<DepartmentDTO>> UpdateDepartmentAsync(int id, UpdateDepartmentDTO dto)
     {
         try
-    {
-        var jsonContent = JsonConvert.SerializeObject(dto);
-        var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+        {
+            var jsonContent = JsonConvert.SerializeObject(dto);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-        var response = await _httpClient.PutAsync($"api/Department/{id}", content);
+            var response = await _httpClient.PutAsync($"api/Department/{id}", content);
 
             var JSONBody = JObject.Parse(await response.Content.ReadAsStringAsync());
 
